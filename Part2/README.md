@@ -11,7 +11,7 @@
 * [미로 만들기](#미로-만들기)
     + [Binary Tree 미로 생성 알고리즘](#binary-tree-미로-생성-알고리즘)
     + [SideWinder 미로 생성 알고리즘](#sidewinder-tree-미로-생성-알고리즘)
-    + 이동 및 우수법
+    + [이동 및 우수법](#이동-및-우수법)
 * 그래프
 * 트리
 * A*알고리즘
@@ -58,12 +58,13 @@
 ### Binary Tree 미로 생성 알고리즘
 *Board.cs의 GenerateByBinaryTree()참조*
 #### 원리
-```
-    1. x,y좌표중에서 하나라도 짝수라면 해당 점을 벽으로 만든다.
-    2. 각각의 빈공간에 대해서 오른쪽 벽을 없앨지, 아래 벽을 없앨지 결정한다.
-    3. 외벽이 뚫렸을 경우, 다시 벽으로 만든다.
-    4. 도착점까지 도달을 못하는 미로일수 있음으로, 외벽을 제외한 가장 아래 줄과 가장 오른쪽 줄을 전체 빈공간으로 만든다.
-```
+1. x,y좌표중에서 하나라도 짝수라면 해당 점을 벽으로 만든다.
+     ![BST01](https://user-images.githubusercontent.com/44914802/125721401-20e90f68-9738-4f1c-a0c8-052d064006a4.PNG)
+2. 각각의 빈공간에 대해서 오른쪽 벽을 없앨지, 아래 벽을 없앨지 결정한다.
+    ![BST02](https://user-images.githubusercontent.com/44914802/125721408-1dfa3b2e-3480-4587-b4bb-916bca710a0c.PNG)
+3. 외벽이 뚫렸을 경우, 다시 벽으로 만든다.
+4. 도착점까지 도달을 못하는 미로일수 있음으로, 외벽을 제외한 가장 아래 줄과 가장 오른쪽 줄을 전체 빈공간으로 만든다.
+    ![BST03](https://user-images.githubusercontent.com/44914802/125721412-a85421f6-48d8-4059-8546-740ccd45611a.PNG)
 #### 코드 설명
 1. x가 짝수거나 y가 짝수면 해당 점을 벽으로 만든다.
 ```c#
@@ -121,13 +122,13 @@ ex. 가장 아래줄이나 가장 오른쪽 줄은 항상 빈칸이다.
 ### SideWinder Tree 미로 생성 알고리즘
 *Board.cs의 GenerateBySideWinder()참조*
 #### 원리
-```
-    1. x,y좌표중에서 하나라도 짝수라면 해당 점을 벽으로 만든다.
-    2. 각각의 빈공간에 대해서 오른쪽 벽을 없앨지, 아래 벽을 없앨지 결정한다.
-    3. 아래벽을 없앨시, 해당 점의 아래를 뚫는 것이 아니라 최근에 오른쪽으로 진행된 점들을 포함한 그룹들 중에서 아래벽을 뚫는다.
-    4. 외벽이 뚫렸을 경우, 다시 벽으로 만든다.
-    5. 도착점까지 도달을 못하는 미로일수 있음으로, 외벽을 제외한 가장 아래 줄과 가장 오른쪽 줄을 전체 빈공간으로 만든다.
-```
+1. x,y좌표중에서 하나라도 짝수라면 해당 점을 벽으로 만든다.
+2. 각각의 빈공간에 대해서 오른쪽 벽을 없앨지, 아래 벽을 없앨지 결정한다.
+3. 아래벽을 없앨시, 해당 점의 아래를 뚫는 것이 아니라 최근에 오른쪽으로 진행된 점들을 포함한 그룹들 중에서 아래벽을 뚫는다.
+    ![SW01](https://user-images.githubusercontent.com/44914802/125721417-7bdfb7f8-0692-4b81-8803-ea2371dccb64.PNG)
+4. 외벽이 뚫렸을 경우, 다시 벽으로 만든다.
+5. 도착점까지 도달을 못하는 미로일수 있음으로, 외벽을 제외한 가장 아래 줄과 가장 오른쪽 줄을 전체 빈공간으로 만든다.
+    ![SW02](https://user-images.githubusercontent.com/44914802/125721419-598de2c2-3685-48db-abf7-a221294bcb39.PNG)
 #### 코드 설명
 1,2,4,5번은 BinaryTree알고리즘과 동일하다.
 3. 아래벽을 없앨시, 해당 점의 아래를 뚫는 것이 아니라 최근에 오른쪽으로 진행된 점들을 포함한 그룹들 중에서 아래벽을 뚫는다.
@@ -174,7 +175,60 @@ ex. 가장 아래줄이나 가장 오른쪽 줄은 항상 빈칸이다.
 ### 플레이어 이동
 길찾기 알고리즘을 수행하는 개체(플레이어)를 Player.cs에 생성한 뒤 플레이어의 위치를 표시하기 위한 작업을 수행한다. 또한 플레이어의 위치를 수정하기위한 Update()도 작성해준다.
 ### 우수법
+*Player.cs의 initialize(), Update()참조*
 플레이어가 현재상태에서 어떻게 이동할지에 대한 판단을 내리는 방법을 Update()에 구현해야한다. 현재 단계에서는 우수법을 Update()에 구현할 것이다.
 >우수법이란?
 한쪽 손을 벽에 붙이고 이동하는 방법으로 미로는 결국 면으로 이루어져 있기 때문에 언젠가는 미로에서 탈출할 수 있다는 접근법
 
+#### 연산 순서
+```
+    1. 현재 위치, 바라보는 방향에서 오른쪽으로 갈 수 있는가
+    2. 현재 위치, 바라보는 방향에서 전진할 수 있는가
+    3. 왼쪽으로 회전
+```
+#### 코드 설명
+1. initialize()에서 경로들을 구해준 뒤
+```c#
+            while (PosY != board.DestY || PosX != board.DestX)
+            {
+                //보고 있는 방향에서 오른쪽으로 갈수 있는가
+                if (_board.Tile[PosY + rightY[_dir], PosX + rightX[_dir]] == Board.TileType.Empty)
+                {
+                    //오른쪽으로 90도 회전
+                    _dir = (_dir + 3) % 4;
+                    //앞으로 전진
+                    PosY += frontY[_dir];
+                    PosX += frontX[_dir];
+                    _points.Add(new Pos(PosY, PosX));
+                }
+                //보고 있는 방향에서 앞으로 갈수 있는가
+                else if (_board.Tile[PosY + frontY[_dir], PosX + frontX[_dir]] == Board.TileType.Empty)
+                {
+                    //앞으로 전진
+                    PosY += frontY[_dir];
+                    PosX += frontX[_dir];
+                    _points.Add(new Pos(PosY, PosX));
+                }
+                else
+                {
+                    //왼쪽으로 90도 회전
+                    _dir = (_dir + 5) % 4;
+                }
+            }
+```
+2. Update()에서 하나씩 출력해준다.
+```c#
+            if (_lastIndex >= _points.Count)
+                return;
+            _sumTIck += deltaTick;
+            if (_sumTIck >= MOVE_TICK)
+            {
+                _sumTIck = 0;
+
+                PosY = _points[_lastIndex].Y;
+                PosX = _points[_lastIndex].X;
+                _lastIndex++;
+            }
+```
+#### 실행 화면
+![RightHand](https://user-images.githubusercontent.com/44914802/125721422-04ab7890-8ac1-41b5-bdc8-87fa8a9435aa.gif)
