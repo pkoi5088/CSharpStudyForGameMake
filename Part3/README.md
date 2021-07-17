@@ -4,7 +4,9 @@
 * [기초 디자인 패턴](#기초-디자인-패턴)
     + [컴포넌트 패턴](#컴포넌트-패턴)
     + [싱글톤 패턴](#싱글톤-패턴)
-* 트랜스폼
+* [트랜스폼](#트랜스폼)
+    + [플레이어 설정](#플레이어-설정)
+    + [Position](#Position)
 ## 기초 디자인 패턴
 >디자인 패턴이란?
 간단히 말하면 코드를 작성하는 방법론을 의미하며 프로그램을 개발하는 과정에서 공통적인 문제점을 해결하기 위한 방법들을 묶어논 것이다.
@@ -20,7 +22,7 @@
 >싱글톤 패턴이란?
 전역 변수를 사용하지 않고 인스턴스를 하나만 생성하도록하여 어디에서든지 참조할 수 있도록 하는 패턴
 
-**Script/Managers/Managers.cs**참조
+**Script/Managers/Managers.cs 참조**
 앞으로의 프로젝트에서 Managers.cs를 만들어 전체를 관리하는 관리자 객체를 만들건데 이를 호출할 때마다 인스턴스를 생성하게 된다면 Manager의 수가 많아져 관리와 처리가 힘들것이다. 이를 해결하기 위해 싱글톤 패턴을 사용할 것인데 이는 인스턴스가 존재한다면 new Object()로 생성할 것이고, 이미 존재한다면 존재하는 인스턴스를 return하는 구조로 구현할 것이다.
 GameObject를 이름으로 찾는방법은 자주 사용하면 안되는 방법인데 역시 여기에도 싱글톤패턴을 사용할수 있다.
 ```c#
@@ -40,3 +42,29 @@ GameObject를 이름으로 찾는방법은 자주 사용하면 안되는 방법�
         }
 ```
 
+## 트랜스폼
+유니티의 Instpector창에 트랜스폼 컴포넌트라는 이동좌표관련된 컴포넌트가 있다. 본 내용에서는 앞으로 만들 플레이어의 이동, 회전 구현방법과 구현 과정에서 필요한 요소들을 다를 것이다.
+학습을 위해서 에셋스토어에서 무료인 Unity-Chan이라는 무료 에셋을 사용할 예정이다.
+### 플레이어 설정
+**Script/PlayerController.cs 참조**
+MMORPG를 만들기 위해서는 이동조작은 거의 필수적으로 필요한 요소이다. WASD를 이용해 상하좌우를 구현할 예정인데 구현할 내용은 다음과 같다.
+```
+    1. W를 누르면 앞으로 이동한다.
+    2. S를 누르면 뒤로 이동한다.
+    3. A를 누르면 왼쪽으로 이동한다.
+    4. D를 누르면 오른쪽으로 이동한다.
+```
+위에서 언급했듯이 위치에 대한 조정을 하려면 transform을 조작해야 한다. 
+```c#
+        if (Input.GetKey(KeyCode.W))
+            transform.position += new Vector3(0.0f, 0.0f, 1.0f);
+        if (Input.GetKey(KeyCode.S))
+            transform.position -= new Vector3(0.0f, 0.0f, 1.0f);
+        if (Input.GetKey(KeyCode.A))
+            transform.position -= new Vector3(1.0f, 0.0f, 0.0f);
+        if (Input.GetKey(KeyCode.D))
+            transform.position += new Vector3(1.0f, 0.0f, 0.0f);
+```
+![PlayerController01](https://user-images.githubusercontent.com/44914802/126035611-62f49ed3-dc6d-4d09-b18d-96aac571b284.gif)
+하지만 움직이는 것을 보면 살짝만 눌렀음에도 너무 빠르게 많이 움직이는 것을 볼 수 있다.
+### Position
