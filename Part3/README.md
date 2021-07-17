@@ -20,4 +20,23 @@
 >싱글톤 패턴이란?
 전역 변수를 사용하지 않고 인스턴스를 하나만 생성하도록하여 어디에서든지 참조할 수 있도록 하는 패턴
 
-앞으로의 프로젝트에서 Manager.cs를 만들어 전체를 관리하는 관리자 객체를 만들건데 이를 호출할 때마다 인스턴스를 생성하게 된다면 Manager의 수가 많아져 관리와 처리가 힘들것이다. 이를 해결하기 위해 싱글톤 패턴을 사용할 것인데 이는 인스턴스가 존재한다면 new Object()로 생성할 것이고, 이미 존재한다면 존재하는 인스턴스를 return하는 구조로 구현할 것이다.
+**Script/Managers/Managers.cs**참조
+앞으로의 프로젝트에서 Managers.cs를 만들어 전체를 관리하는 관리자 객체를 만들건데 이를 호출할 때마다 인스턴스를 생성하게 된다면 Manager의 수가 많아져 관리와 처리가 힘들것이다. 이를 해결하기 위해 싱글톤 패턴을 사용할 것인데 이는 인스턴스가 존재한다면 new Object()로 생성할 것이고, 이미 존재한다면 존재하는 인스턴스를 return하는 구조로 구현할 것이다.
+GameObject를 이름으로 찾는방법은 자주 사용하면 안되는 방법인데 역시 여기에도 싱글톤패턴을 사용할수 있다.
+```c#
+        if (s_instance == null)
+        {
+            //생성하고자 하는 인스턴스가 존재하는지 탐색
+            GameObject go = GameObject.Find("@Managers");
+            //없으면 새로 생성
+            if (go == null)
+            {
+                go = new GameObject { name = "@Managers" };
+                go.AddComponent<Managers>();
+            }
+
+            DontDestroyOnLoad(go);
+            s_instance = go.GetComponent<Managers>();
+        }
+```
+
