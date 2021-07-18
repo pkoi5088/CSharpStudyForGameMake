@@ -6,7 +6,19 @@
     + [싱글톤 패턴](#싱글톤-패턴)
 * [트랜스폼](#트랜스폼)
     + [플레이어 설정](#플레이어-설정)
-    + [Position](#Position)
+    + [Position](#position)
+    + [Input Manager](#input-manager)
+* Prefab
+* Collision
+* Camera
+* Animation
+* UI
+* Scene
+* Sound
+* Object Pooling
+* Coroutine
+* Data
+* Mini RPG
 ## 기초 디자인 패턴
 >디자인 패턴이란?
 간단히 말하면 코드를 작성하는 방법론을 의미하며 프로그램을 개발하는 과정에서 공통적인 문제점을 해결하기 위한 방법들을 묶어논 것이다.
@@ -65,6 +77,71 @@ MMORPG를 만들기 위해서는 이동조작은 거의 필수적으로 필요�
         if (Input.GetKey(KeyCode.D))
             transform.position += new Vector3(1.0f, 0.0f, 0.0f);
 ```
-![PlayerController01](https://user-images.githubusercontent.com/44914802/126035611-62f49ed3-dc6d-4d09-b18d-96aac571b284.gif)
+![PlayerController01](https://user-images.githubusercontent.com/44914802/126035611-62f49ed3-dc6d-4d09-b18d-96aac571b284.gif)  
 하지만 움직이는 것을 보면 살짝만 눌렀음에도 너무 빠르게 많이 움직이는 것을 볼 수 있다.
 ### Position
+속도가 너무 빠르다면 적절한 상수로 조절을 해야할 필요가 있다. 방향은 정해 졌으니 Time.deltaTIme과 _speed를 따로 정의해 속도를 조절할 수 있다.
+```c#
+        float _speed = 10.0f;
+        if (Input.GetKey(KeyCode.W))
+            transform.position += Vector3.forward * Time.deltaTime * _speed;
+        if (Input.GetKey(KeyCode.S))
+            transform.position -= Vector3.back * Time.deltaTime * _speed;
+        if (Input.GetKey(KeyCode.A))
+            transform.position -= Vector3.left * Time.deltaTime * _speed;
+        if (Input.GetKey(KeyCode.D))
+            transform.position += Vector3.right * Time.deltaTime * _speed;
+```
+여기서 문제점이 발생하게 되는데 transform.position은 게임내의 절대좌표를 의미하고 WASD를 입력할 때 움직이는 방향은 절대좌표가 기준이 아닌 캐릭터가 바라보는 방향에 대한 값을 가지고 있어야 한다. 이때 사용하는 기능이 TransformDirection이다. 이는 Local좌표를 World좌표로 바꾸는 기능을 가지는데 이함수를 사용하면 방향에 대한 걱정은 안해도 된다.
+```c#
+        if (Input.GetKey(KeyCode.W))
+            transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+        if (Input.GetKey(KeyCode.S))
+            transform.position -= transform.TransformDirection(Vector3.back * Time.deltaTime * _speed);
+        if (Input.GetKey(KeyCode.A))
+            transform.position -= transform.TransformDirection(Vector3.left * Time.deltaTime * _speed);
+        if (Input.GetKey(KeyCode.D))
+            transform.position += transform.TransformDirection(Vector3.right * Time.deltaTime * _speed);
+```
+### Input Manager
+**Script/Managers/InputManager.cs 참조**
+게임 규모가 작다면 Update()에서 키보드 입력을 하나씩 체크하는 것은 게임 속도에 영향을 크게 미치지 않는다. 하지만 게임규모가 커진다면 모든 플레이어의 키보드입력을 체크하는것은 굉장히 큰 성능부하가 될 것이다.
+>Update()문에 직접 체크를 하지 않고 InputManager를 하나를 정의해 여기서 이벤트를 처리하도록 하자!
+
+InputManager는 대표로 입력을 체크에 이벤트를 체크해 메시지를 전파하는 역할을 가진다.
+#### 코드 설명
+1. InputManager.cs
+```c#
+public class InputManager
+{
+    public Action KeyAction = null;
+
+    public void OnUpdate()
+    {
+        //아무것도 눌리지 않았으면 함수종료
+        if (Input.anyKey == false)
+            return;
+
+        //눌린게 있다면 해당 Action을 전파
+        if (KeyAction != null)
+            KeyAction.Invoke();
+
+    }
+}
+```
+2. Managers.cs
+```c#
+    //Manager를 총괄하는 Managers.cs
+    //InputManager에 대한 초기화, 접근을 위한 Input정의
+    InputManager _input = new InputManager();
+    public static InputManager Input { get { return instance._input; } }
+    ...
+    
+    //기존의 Update의 이벤트 처리를
+    //위에서 생성한 _input에게 맡긴다 
+        void Update()
+    {
+        _input.OnUpdate();
+    }
+```
+## Prefab
