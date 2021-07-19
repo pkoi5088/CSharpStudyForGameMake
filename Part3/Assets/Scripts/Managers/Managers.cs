@@ -5,22 +5,24 @@ using UnityEngine;
 public class Managers : MonoBehaviour
 {
     static Managers s_instance;
-    static Managers instance { get { return s_instance; } }
+    static Managers Instance { get { Init(); return s_instance; } }
 
     InputManager _input = new InputManager();
-    public static InputManager Input { get { return instance._input; } }
+    public static InputManager Input { get { return Instance._input; } }
 
+    // Start is called before the first frame update
     void Start()
     {
-        init();
+        Init();
     }
 
+    // Update is called once per frame
     void Update()
     {
         _input.OnUpdate();
     }
 
-    static void init()
+    static void Init()
     {
         if (s_instance == null)
         {
