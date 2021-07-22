@@ -4,9 +4,13 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField]
+    float _speed = 10.0f;
     void Start()
     {
-        
+        //중복입력 방지
+        Managers.Input.KeyAction -= OnKeyBoard;
+        Managers.Input.KeyAction += OnKeyBoard;
     }
 
     //GameObject (Player)
@@ -15,13 +19,30 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+
+    }
+
+    void OnKeyBoard()
+    {
         if (Input.GetKey(KeyCode.W))
-            transform.position += new Vector3(0.0f, 0.0f, 1.0f);
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.2f);
+            transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+        }
         if (Input.GetKey(KeyCode.S))
-            transform.position -= new Vector3(0.0f, 0.0f, 1.0f);
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.2f);
+            transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+        }
         if (Input.GetKey(KeyCode.A))
-            transform.position -= new Vector3(1.0f, 0.0f, 0.0f);
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.left), 0.2f);
+            transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+        }
         if (Input.GetKey(KeyCode.D))
-            transform.position += new Vector3(1.0f, 0.0f, 0.0f);
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.2f);
+            transform.position += transform.TransformDirection(Vector3.forward * Time.deltaTime * _speed);
+        }
     }
 }

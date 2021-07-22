@@ -8,7 +8,8 @@
     + [플레이어 설정](#플레이어-설정)
     + [Position](#position)
     + [Input Manager](#input-manager)
-* Prefab
+* [Prefab](#prefab)
+    + [Resource Manager](#resource-manager)
 * Collision
 * Camera
 * Animation
@@ -34,7 +35,7 @@
 >싱글톤 패턴이란?
 전역 변수를 사용하지 않고 인스턴스를 하나만 생성하도록하여 어디에서든지 참조할 수 있도록 하는 패턴
 
-**Assets/Script/Managers/Managers.cs 참조**
+**Scripts/Managers/Managers.cs 참조**
 앞으로의 프로젝트에서 Managers.cs를 만들어 전체를 관리하는 관리자 객체를 만들건데 이를 호출할 때마다 인스턴스를 생성하게 된다면 Manager의 수가 많아져 관리와 처리가 힘들것이다. 이를 해결하기 위해 싱글톤 패턴을 사용할 것인데 이는 인스턴스가 존재한다면 new Object()로 생성할 것이고, 이미 존재한다면 존재하는 인스턴스를 return하는 구조로 구현할 것이다.
 GameObject를 이름으로 찾는방법은 자주 사용하면 안되는 방법인데 역시 여기에도 싱글톤패턴을 사용할수 있다.
 ```c#
@@ -58,7 +59,7 @@ GameObject를 이름으로 찾는방법은 자주 사용하면 안되는 방법�
 유니티의 Instpector창에 트랜스폼 컴포넌트라는 이동좌표관련된 컴포넌트가 있다. 본 내용에서는 앞으로 만들 플레이어의 이동, 회전 구현방법과 구현 과정에서 필요한 요소들을 다를 것이다.
 학습을 위해서 에셋스토어에서 무료인 Unity-Chan이라는 무료 에셋을 사용할 예정이다.
 ### 플레이어 설정
-**Assets/Script/PlayerController.cs 참조**
+**Scripts/PlayerController.cs 참조**
 MMORPG를 만들기 위해서는 이동조작은 거의 필수적으로 필요한 요소이다. WASD를 이용해 상하좌우를 구현할 예정인데 구현할 내용은 다음과 같다.
 ```
     1. W를 누르면 앞으로 이동한다.
@@ -104,7 +105,7 @@ MMORPG를 만들기 위해서는 이동조작은 거의 필수적으로 필요�
             transform.position += transform.TransformDirection(Vector3.right * Time.deltaTime * _speed);
 ```
 ### Input Manager
-**Assets/Script/Managers/InputManager.cs 참조**
+**Scripts/Managers/InputManager.cs 참조**
 게임 규모가 작다면 Update()에서 키보드 입력을 하나씩 체크하는 것은 게임 속도에 영향을 크게 미치지 않는다. 하지만 게임규모가 커진다면 모든 플레이어의 키보드입력을 체크하는것은 굉장히 큰 성능부하가 될 것이다.
 >Update()문에 직접 체크를 하지 않고 InputManager를 하나를 정의해 여기서 이벤트를 처리하도록 하자!
 
@@ -149,4 +150,46 @@ public class InputManager
 ```
     1. 나중에 속성이 변경될 때 Prefab의 속성을 변경해주면 모든 Prefab Instance의 속성이 변경된다.
     2. 하이라키에서 Prefabs폴더에 드래그드롭으로 구현한다.
+```
+### Resource Manager
+**Scripts/Managers/ResourceManager.cs 참조**
+Object를 생성할 때 직접 함수를 호출함으로 Object를 생성하는 것도 하나의 방법이지만 코드가 많아지면 많아질수록 누가 생성하였는지 추적이 어려워진다. InputManager와 같이 Resource를 관리하는 Manager를 둬가지고 ResourceManager를 통해 생성하도록 수정할 필요가 있다.
+>ResourceManager는 prefab불러오기, 생성, 삭제기능을 가져야 한다.
+#### 코드 설명
+1. ResourceManager.cs
+```c#
+public class ResourceManager
+{
+    public T Load<T>(string path) where T:Object
+    {
+        return Resources.Load<T>(path);
+    }
+
+    public GameObject Instantiate(string path, Transform parent = null)
+    {
+        GameObject prefab = Load<GameObject>($"Prefabs/{path}");
+        if (prefab == null)
+        {
+            Debug.Log($"Failed to load prefab : {path}");
+            return null;
+        }
+
+        return Object.Instantiate(prefab, parent);
+    }
+
+    public void Destroy(GameObject go)
+    {
+        if (go == null)
+            return;
+        Object.Destroy(go);
+    }
+}
+```
+2. Managers.cs
+```c#
+    //Manager를 총괄하는 Managers.cs
+    //ResourceManager 대한 초기화, 접근을 위한 Resource정의
+    ResourceManager _resource = new ResourceManager();
+    public static ResourceManager Resource { get { return instance._resource; } }
+    ...
 ```
