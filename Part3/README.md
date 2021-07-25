@@ -13,6 +13,7 @@
 * [Collision](#collision)
     + [RigidBody Collider](#rigidbody-collider)
     + [Wall Collision](#wall-collision)
+    + [Raycasting](#raycasting)
 * Camera
 * Animation
 * UI
@@ -198,8 +199,31 @@ public class ResourceManager
 ## Collision
 게임에서 충돌은 정말 중요하고 많이 사용된다. 캐릭터가 활을 쏘거나 총을 쏠 때 화살, 총알의 충돌이나 캐릭터간의 충돌로 인해 이동에 방해를 받는 상황과 같이 실제 충돌은 많이 쓰이게 된다.
 ### RigidBody Collider
-이는 캐릭터가 땅에 서있는 것도 포함되는데 충돌이 존재하지 않다면 다음과 같은 상황이 발생하게 된다.  
+이는 캐릭터가 땅에 서있는 것도 포함되는데 충돌이 존재하지 않다면 다음과 같은 상황이 발생하게 된다.
 ![Collision01](https://user-images.githubusercontent.com/44914802/126871758-926acf13-65ad-4483-9e82-b5bd12a03f33.gif)  
-실제 유니티에서 물리엔진을 구현하기 위해 RigidBody라는 컴포넌트를 사용하는데 이를 사용하게 되면 Object가 자유낙하를 할 수 있게 된다. RigidBody에서는 질량, 중력 여부와 같이 실제 물리엔진에 사용될 상수들을 설정할 수 있다. 또한, 충돌을 위해서 충돌될 범위를 지정해줘야 하는데 이는 Collider라는 컴포넌트를 사용한다. 잘 적용하였다면 다음과 같이된다.  
+실제 유니티에서 물리엔진을 구현하기 위해 RigidBody라는 컴포넌트를 사용하는데 이를 사용하게 되면 Object가 자유낙하를 할 수 있게 된다. RigidBody에서는 질량, 중력 여부와 같이 실제 물리엔진에 사용될 상수들을 설정할 수 있다. 또한, 충돌을 위해서 충돌이 될 범위를 지정해줘야 하는데 이는 Collider라는 컴포넌트를 사용한다. 잘 적용하였다면 다음과 같이된다.
 ![Collision02](https://user-images.githubusercontent.com/44914802/126871835-04e6993b-bc9b-42d0-81d4-212e01b9f7e4.gif)  
 ### Wall Collision
+현재 바닥과 캐릭터의 충돌구현까지 하였다. 같은 원리로 물체를 하나 만들어서 두 물체를 충돌시킨다면 어떻게 되는지 확인해보자.  
+![Collision03](https://user-images.githubusercontent.com/44914802/126889914-7938a64b-9dd9-4df0-a306-7a9035f3b928.gif)  
+캐릭터가 충돌한 후 넘어지게 된다. 이를 해결하려면 충돌할 때 발생하는 이벤트를 처리해주어야 한다. 이벤트를 받기 위한 방법은 2가지가 있다.
+#### Collision으로 받는 방법(OnCollisionEnter)
+```
+    1) 나한태 RigidBody가 있어야 한다.
+    2) 나와 상대에게 Collider가 있어야 한다.
+```
+#### Trigger를 받는법(OnTriggerEnter)
+```
+    1) 나와 상대에게 Collider가 있어야 한다.
+    2) 둘 중 하나는 IsTrigger속성을 On해줘야 한다.
+    3) 둘 중 하나는 RigidBody가 있어야 한다.
+```
+### Ratcasting
+현재까지의 내용으로는 어떤 구역을 클릭했을 때 어떤 물체가 있는지 알 수는 없다. 카메라의 시점에 따라 위치에 따라 클릭하는 좌표가 달라지기 때문이다. 이때 사용하는 기술이 Raycasting이라는 기술이다. Raycasting은 카메라 시점에서 누른 좌표로 광선을 쏜다고 가정해 어떤 물체에 부딪히게 된다면 해당 물체를 선택하게 된다는 접근을 기반으로한 기술이다.
+```c#
+    Physics.Raycast(위치(Vector3), 방향(Vector3))
+```
+Raycast의 매개변수의 자료형은 Vector3인데 실제 스크린의 점은 2D좌표이다. 그렇다면 스크린의 좌표를 실제 3D좌표로 변환하는 과정이 필요하다.
+#### 좌표변환
+여태까지 다룬 좌표영역은 Local과 World이다. 이는 흔히 알고있는 절대좌표와 상대좌표로 이해했는데 여기에 Screen 좌표계가 추가되는 것이다.  
+![Collision04](https://user-images.githubusercontent.com/44914802/126890493-88b93c95-4ae7-4d1a-9c4f-1dd06080fb80.png)  
