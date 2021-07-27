@@ -14,6 +14,7 @@
     + [RigidBody Collider](#rigidbody-collider)
     + [Wall Collision](#wall-collision)
     + [Raycasting](#raycasting)
+    + [투영](#투영)
 * Camera
 * Animation
 * UI
@@ -227,3 +228,16 @@ Raycast의 매개변수의 자료형은 Vector3인데 실제 스크린의 점은
 #### 좌표변환
 여태까지 다룬 좌표영역은 Local과 World이다. 이는 흔히 알고있는 절대좌표와 상대좌표로 이해했는데 여기에 Screen 좌표계가 추가되는 것이다.  
 ![Collision04](https://user-images.githubusercontent.com/44914802/126890493-88b93c95-4ae7-4d1a-9c4f-1dd06080fb80.png)  
+### 투영
+유니티에서 Scene의 화면은 카메라의 위치와 카메라가 날아가는 방향에 따라 다르다. 여기서 보이는 화면은 카메라를 윗꼭지점으로 하는 삼각뿔을 생각하면 되는데 여기서 가장 중요한 것은 일정한 비율이 존재한다는 것이다.  ![Collision05](https://user-images.githubusercontent.com/44914802/127171242-89dd64ab-a8a3-4ce9-89f2-3cc305e63dd1.png)  
+#### World좌표
+이제 World좌표를 알아내기 위해서 상황을 분석해보자 게임 화면이 클릭 되었을 때 입력값은 Vector2이고 알아내야 하는 월드 좌표는 Vector3이다. 클릭되는 위치로 x와 y는 알아낼수 있지만 z는 어떻게 알아내야 할까?  
+![Collision06](https://user-images.githubusercontent.com/44914802/127172265-d4ff9247-ecd5-4cfe-93fb-5c636cd31fdd.png)  
+실제 입력된 좌표는 위 그림의 파란색 사각형의 위치인데 여기에서 z값을 알아낼수있다. main camera를 보면 near라는 속성이 있는데 이게 파란사각형과 꼭지점의 거리를 의미한다.
+```c#
+    Vector3 mousPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane));
+    Vector3 dir = mousPos - Camera.main.transform.position;
+    dir = dir.normalized;
+```
+mousPos는 클릭한위치의 x,y좌표와 카메라의 near를 이용해 실제 클릭한 위치의 좌표를 의미하고 여기에 카메라의 좌표를 빼주면 클릭한 위치방향의 벡터가 나온다. 이를 일반화해 크기가 1인 단위벡터로 만든 코드이다.
+다음 코드는 위의 3줄을 한번에 해주는 코드이다.
