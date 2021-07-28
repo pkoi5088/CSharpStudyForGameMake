@@ -15,7 +15,10 @@
     + [Wall Collision](#wall-collision)
     + [Raycasting](#raycasting)
     + [투영](#투영)
-* Camera
+    + [LayerMask](#layermask)
+* [Camera](#camera)
+    + [CameraController](#cameracontroller)
+    + [LastUpdate](#lastupdate)
 * Animation
 * UI
 * Scene
@@ -240,4 +243,130 @@ Raycast의 매개변수의 자료형은 Vector3인데 실제 스크린의 점은
     dir = dir.normalized;
 ```
 mousPos는 클릭한위치의 x,y좌표와 카메라의 near를 이용해 실제 클릭한 위치의 좌표를 의미하고 여기에 카메라의 좌표를 빼주면 클릭한 위치방향의 벡터가 나온다. 이를 일반화해 크기가 1인 단위벡터로 만든 코드이다.
-다음 코드는 위의 3줄을 한번에 해주는 코드이다.
+### LayerMask
+충돌을 구현할 때 물체가 정육면체나 구와같이 모형이 범위를 특정하기 쉬운 물체라면 좋겠지만 실제 울퉁불퉁한 벽과 같은 경우는 연산 부하를 줄이기 위해 출동 전용 Mesh Collider를 만들기도 한다. 여태까지 다룬 내용으로는 모든 물체에 대해서 충돌연산을 하고 있는데 Layer를 사용하면 연산하고 싶은 애들만 골라서 Raycast가 가능하다.
+Physics.Raycast()의 여러 버전중에 Layermask를 입력받는 버전이 존재한다. 여기서 Layermask는 bitflag로 실제로 보여줄 Layer의 번호비트를 켜서 여러가지 Layer중 보여주고싶은 Layer만 보여줄 수 있게된다.
+## Camera
+RPG게임에서 카메라의 구도나 시점에 따라 화면이 달라진다. 하지만 여태까지 다룬 내용으로는 카메라를 다루지는 않았다. 3인칭으로 캐릭터의 뒷모습을 따라가거나 1인칭으로 캐릭터의 시점으로 보는 등 여러가지 카메라 조작이 필요하다.
+### CameraController
+**CameraController참조**
+카메라와 캐릭터의 위치를 조정한 후 카메라를 캐릭터에 포함되게 설정한 뒤 직접 움직이면 다음과 같은 상황이 된다.  
+![Camera01](https://user-images.githubusercontent.com/44914802/127279174-f28550f9-9dc6-40b4-a1f9-8dd2b93e0604.gif)  
+시점은 고정되었지만 캐릭터가 회전할때 카메라도 같이 회전해 매우 어지러운 상황이 발생한다. 캐릭터가 바라보는 방향에 관계없이 World좌표로 캐릭터와의 상대위치를 고정시켜버리면 해결이 된다.  
+![Camera02](https://user-images.githubusercontent.com/44914802/127280310-f321af78-5248-49fd-9409-0bd1e359942d.gif)  
+#### LastUpdate
+카메라의 Update와 캐릭터의 Update중 어떤 Update가 먼저 실행될까? 정답은 "모른다"이다. 카메라는 캐릭터의 위치에 따라 영향을 받는데 만약 캐릭터의 Update가 되기 전에 카메라의 Update가 실행된다면 정상적인 움직임을 보이지 않을 것이다. 이때 카메라의 Update를 LastUpdate로 한다면 캐릭터의 위치가 수정되고 카메라의 위치를 처리하기 때문에 연산상에 논리적인 오류가 없어진다.
+#### 정리
+카메라의 움직임을 처리하기 위해 다음과 같은 처리들이 필요하다.
+```
+    1. 마우스 이벤트 처리(InputManager)
+    2. 플레이어의 이동 처리(PlayerController)
+    3. 플레이어와 카메라 사이의 장애물 처리(CameraController)
+```
+1. 마우스 이벤트 처리
+InputManager에서 키보드 이벤트만 있던것을 마우스 이벤트도 추가해주면 된다. 다만 다른점이 있다면 Action에 미리 정의된 마우스 입력, 클릭과 같은 enum형태로 처리해주어야 한다.
+```c#
+public class InputManager
+{
+    public Action KeyAction = null;
+    public Action<Define.MouseEvent> MouseAction = null;
+
+    bool _pressed = false;
+
+    public void OnUpdate()
+    {
+        if (Input.anyKey && KeyAction != null)
+            KeyAction.Invoke();
+
+        if (MouseAction != null)
+        {
+            if (Input.GetMouseButton(0))
+            {
+                MouseAction.Invoke(Define.MouseEvent.Press);
+                _pressed = true;
+            }
+            else
+            {
+                if (_pressed)
+                    MouseAction.Invoke(Define.MouseEvent.Clik);
+                _pressed = false;
+            }
+        }
+    }
+}
+```
+2. 플레이어의 이동 처리
+플레이어의 이동은 먼저 마우스 클릭이벤트를 적용하고, 목적지 좌표를 설정하며, 해 Update마다 해당 목적지로 이동해야 한다.
+```c#
+(1) 마우스 클릭 벤트를 적용하고
+    void Start()
+    {
+        //중복입력 방지
+        Managers.Input.KeyAction -= OnKeyBoard;
+        Managers.Input.KeyAction += OnKeyBoard;
+        Managers.Input.MouseAction -= OnMouseClicked;
+        Managers.Input.MouseAction += OnMouseClicked;
+    }
+    
+(2) 목적지 좌표를 설정하며
+    void OnMouseClicked(Define.MouseEvent evt)
+    {
+        if (evt != Define.MouseEvent.Clik)
+            return;
+
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
+
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Wall")))
+        {
+            _destPos = hit.point;
+            _moveToDest = true;
+        }
+    }
+    
+(3) Update마다 해당 목적지로 이동해야 한다.
+    void Update()
+    {
+        if (_moveToDest)
+        {
+            Vector3 dir = _destPos - transform.position;
+            if (dir.magnitude < 0.0001f)
+            {
+                _moveToDest = false;
+            }
+            else
+            {
+                float moveDist = Mathf.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
+                transform.position += dir.normalized * moveDist;
+
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 20 * Time.deltaTime);
+                transform.LookAt(_destPos);
+            }
+        }
+    }
+```
+3. 플레이어와 카메라 사이의 장애물 처리
+만약 다음과 같이 카메라와 플레이어 사이에 벽과같은 장애물이 있다면 플레이어가 보이지 않을 것이다.  ![Camera03](https://user-images.githubusercontent.com/44914802/127288656-e5c9214c-8373-434f-a468-e9ec721be758.PNG)  
+이를 해결하는거는 생각보다 어렵지 않다. 카메라의 위치를 수정해줄때 플레이어와 카메라사이에 Wall Layer를 가진 물체가 존재한다면 카메라의 위치를 플레이어와 벽 사이의 거리만큼 당겨주면 된다.
+```c#
+    void LateUpdate()
+    {
+        if (_mode == Define.CameraMode.QuaterView)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(_player.transform.position, _delta, out hit, _delta.magnitude, LayerMask.GetMask("Wall")))
+            {
+                float dist = (hit.point - _player.transform.position).magnitude * 0.8f;
+                transform.position = _player.transform.position + _delta.normalized * dist;
+            }
+            else
+            {
+                transform.position = _player.transform.position + _delta;
+                transform.LookAt(_player.transform);
+            }
+        }
+    }
+```
+결과 화면을 보면 캐릭터가 벽뒤에 갈때 카메라가 당겨지는 것을 확인 할 수 있다.
+![Camera04](https://user-images.githubusercontent.com/44914802/127289286-05818260-e3d9-47b2-976c-7775bd2175a9.gif)  
