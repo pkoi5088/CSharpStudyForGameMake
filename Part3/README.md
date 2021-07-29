@@ -19,7 +19,6 @@
 * [Camera](#camera)
     + [CameraController](#cameracontroller)
     + [LastUpdate](#lastupdate)
-* Animation
 * UI
 * Scene
 * Sound
