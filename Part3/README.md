@@ -391,8 +391,10 @@ public class InputManager
 ```
 3. 플레이어와 카메라 사이의 장애물 처리
 만약 다음과 같이 카메라와 플레이어 사이에 벽과같은 장애물이 있다면 플레이어가 보이지 않을 것이다.  
-<img src="https://user-images.githubusercontent.com/44914802/127288656-e5c9214c-8373-434f-a468-e9ec721be758.PNG" width="50%" height="50%">  
+
+<img src="https://user-images.githubusercontent.com/44914802/127288656-e5c9214c-8373-434f-a468-e9ec721be758.PNG" width="50%" height="50%"/>  
 이를 해결하는거는 생각보다 어렵지 않다. 카메라의 위치를 수정해줄때 플레이어와 카메라사이에 Wall Layer를 가진 물체가 존재한다면 카메라의 위치를 플레이어와 벽 사이의 거리만큼 당겨주면 된다.
+
 ```c#
     void LateUpdate()
     {
@@ -412,5 +414,6 @@ public class InputManager
         }
     }
 ```
+
 결과 화면을 보면 캐릭터가 벽뒤에 갈때 카메라가 당겨지는 것을 확인 할 수 있다.  
 ![Camera04](https://user-images.githubusercontent.com/44914802/127289286-05818260-e3d9-47b2-976c-7775bd2175a9.gif)  
