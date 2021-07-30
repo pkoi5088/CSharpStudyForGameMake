@@ -4,6 +4,7 @@
 * [기초 디자인 패턴](#기초-디자인-패턴)
     + [컴포넌트 패턴](#컴포넌트-패턴)
     + [싱글톤 패턴](#싱글톤-패턴)
+    + [상태 패턴](#상태-패턴)
 * [트랜스폼](#트랜스폼)
     + [플레이어 설정](#플레이어-설정)
     + [Position](#position)
@@ -59,6 +60,49 @@ GameObject를 이름으로 찾는방법은 자주 사용하면 안되는 방법�
             DontDestroyOnLoad(go);
             s_instance = go.GetComponent<Managers>();
         }
+```
+### 상태 패턴
+>상태 패턴이란?
+객체가 특정 상태에 따라 행동이 달라지는 상황에서 상태틀 격체화 하여 상태가 행동을 할 수 있도록 하는 패턴
+
+실제 게임에서는 굉장히 많은 상태들이 존재한다. 예를 들면 캐릭터가 이동하고 있는 상태, 서있는 상태, 공격중인 상태와 같이 무수히 많은 상태들이 존재한다. 상태들을 가지고 있는 개체가 몇개 안된다면 직접 상태를 처리하는 것이 간단하지만 수백 수천개가 된다면 이를 컨트롤 하기 힘들 것이다. 캐릭터를 Update하는데 움직이는 상태라면? 서있는 상태라면? 죽어있는 상태라면? 해야하는 동작이 서로 달라 컨트롤하기 힘들어 질 것이다. 상태를 나누고 Upate에 Switch문을 사용해 특정 상태에 취해야 하는 행동들을 따로 구현하도록 하자.
+```c#
+    public enum PlayerState
+    {
+        Die,
+        Moving,
+        Idle,
+    }
+    void UpdateDie()
+    {
+    //...
+    }
+
+    void UpdateMoving()
+    {
+    //...
+    }
+
+    void UpdateIdle()
+    {
+    //...
+    }
+
+    void Update()
+    {
+        switch (_state)
+        {
+            case PlayerState.Die:
+                UpdateDie();
+                break;
+            case PlayerState.Moving:
+                UpdateMoving();
+                break;
+            case PlayerState.Idle:
+                UpdateIdle();
+                break;
+        }
+    }
 ```
 
 ## 트랜스폼
@@ -202,9 +246,9 @@ public class ResourceManager
 ## Collision
 게임에서 충돌은 정말 중요하고 많이 사용된다. 캐릭터가 활을 쏘거나 총을 쏠 때 화살, 총알의 충돌이나 캐릭터간의 충돌로 인해 이동에 방해를 받는 상황과 같이 실제 충돌은 많이 쓰이게 된다.
 ### RigidBody Collider
-이는 캐릭터가 땅에 서있는 것도 포함되는데 충돌이 존재하지 않다면 다음과 같은 상황이 발생하게 된다.
+이는 캐릭터가 땅에 서있는 것도 포함되는데 충돌이 존재하지 않다면 다음과 같은 상황이 발생하게 된다.  
 ![Collision01](https://user-images.githubusercontent.com/44914802/126871758-926acf13-65ad-4483-9e82-b5bd12a03f33.gif)  
-실제 유니티에서 물리엔진을 구현하기 위해 RigidBody라는 컴포넌트를 사용하는데 이를 사용하게 되면 Object가 자유낙하를 할 수 있게 된다. RigidBody에서는 질량, 중력 여부와 같이 실제 물리엔진에 사용될 상수들을 설정할 수 있다. 또한, 충돌을 위해서 충돌이 될 범위를 지정해줘야 하는데 이는 Collider라는 컴포넌트를 사용한다. 잘 적용하였다면 다음과 같이된다.
+실제 유니티에서 물리엔진을 구현하기 위해 RigidBody라는 컴포넌트를 사용하는데 이를 사용하게 되면 Object가 자유낙하를 할 수 있게 된다. RigidBody에서는 질량, 중력 여부와 같이 실제 물리엔진에 사용될 상수들을 설정할 수 있다. 또한, 충돌을 위해서 충돌이 될 범위를 지정해줘야 하는데 이는 Collider라는 컴포넌트를 사용한다. 잘 적용하였다면 다음과 같이된다.  
 ![Collision02](https://user-images.githubusercontent.com/44914802/126871835-04e6993b-bc9b-42d0-81d4-212e01b9f7e4.gif)  
 ### Wall Collision
 현재 바닥과 캐릭터의 충돌구현까지 하였다. 같은 원리로 물체를 하나 만들어서 두 물체를 충돌시킨다면 어떻게 되는지 확인해보자.  
@@ -347,7 +391,7 @@ public class InputManager
 ```
 3. 플레이어와 카메라 사이의 장애물 처리
 만약 다음과 같이 카메라와 플레이어 사이에 벽과같은 장애물이 있다면 플레이어가 보이지 않을 것이다.  
-![Camera03](https://user-images.githubusercontent.com/44914802/127288656-e5c9214c-8373-434f-a468-e9ec721be758.PNG)  
+<img src="https://user-images.githubusercontent.com/44914802/127288656-e5c9214c-8373-434f-a468-e9ec721be758.PNG" width="50%" height="50%">  
 이를 해결하는거는 생각보다 어렵지 않다. 카메라의 위치를 수정해줄때 플레이어와 카메라사이에 Wall Layer를 가진 물체가 존재한다면 카메라의 위치를 플레이어와 벽 사이의 거리만큼 당겨주면 된다.
 ```c#
     void LateUpdate()
