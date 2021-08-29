@@ -20,7 +20,8 @@
 * [Camera](#camera)
     + [CameraController](#cameracontroller)
     + [LastUpdate](#lastupdate)
-* Scene
+* [Scene](#scene)
+    + [SceneManager](#scenemanager)
 * Sound
 * Object Pooling
 * Coroutine
@@ -416,3 +417,105 @@ public class InputManager
 
 결과 화면을 보면 캐릭터가 벽뒤에 갈때 카메라가 당겨지는 것을 확인 할 수 있다.  
 ![Camera04](https://user-images.githubusercontent.com/44914802/127289286-05818260-e3d9-47b2-976c-7775bd2175a9.gif)  
+
+## Scene
+### SceneManager
+Scene을 관리하고 다른 Scene으로 이동하는 것을 관리할 Manager가 필요하다. 지금까지 UI를 불러오는 코드는 플레이어 개체에 있었는데 플레이어가 없어진다면 UI도 안나오게 된다. 따라서, UI를 불러오는 것을 플레이어가 하는 것은 부자연스럽기 때문에 Scene을 관리하는 Manager가 필요하다.
+#### 코드설명
+1. BaseScene.cs
+```c#
+    //모든 Scene이 상속받을 최상위 Scene
+    public abstract class BaseScene : MonoBehaviour
+{
+    public Define.Scene SceneType { get; protected set; } = Define.Scene.Unknown;
+
+    void Start()
+    {
+        
+    }
+
+    protected virtual void Init()
+    {
+        //이벤트를 처리할 EventSystem이 없을 때를 대비
+        Object obj = GameObject.FindObjectOfType(typeof(EventSystem));
+        if (obj == null)
+            Managers.Resource.Instantiate("UI/EventSystem").name = "@EventSystem";
+    }
+
+    public abstract void Clear();
+}
+```
+2. GameScene.cs
+```c#
+    //실제 게임 내부를 나타내는 GameScene.cs
+    public class GameScene : BaseScene
+{
+    //컴포넌트가 꺼져있을 때도 실행되도록 함
+    void Awake()
+    {
+        Init();
+    }
+
+    protected override void Init()
+    {
+        base.Init();
+        //실제 게임화면임을 나타내고 UI를 띄운다.
+        SceneType = Define.Scene.Game;
+        Managers.UI.ShowSceneUI<UI_Inven>();
+    }
+
+    public override void Clear()
+    {
+
+    }
+}
+```
+3. LoginScene.cs
+```c#
+    //로그인 화면을 나타낼 LoginScene.cs
+    public class LoginScene : BaseScene
+{
+    protected override void Init()
+    {
+        base.Init();
+
+        SceneType = Define.Scene.Login;
+    }
+
+    private void Update()
+    {
+        //테스트를 위한 하드코딩
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Managers.Scene.LoadScene(Define.Scene.Game);
+        }
+    }
+
+    public override void Clear()
+    {
+        Debug.Log("Login Scene Claer!");
+    }
+}
+```
+4. SceneManagerEx.cs
+```c#
+    //Scene들을 관리할 SceneManagerEx.cs
+    public class SceneManagerEx
+{
+    //현재 실행중인 화면을 알아내기 위함
+    public BaseScene CurrentScene { get { return GameObject.FindObjectOfType<BaseScene>(); } }
+
+    public void LoadScene(Define.Scene type)
+    {
+        //현재 실행중인 화면의 뒤처리를 한 후 화면전환을 한다.
+        CurrentScene.Clear();
+        SceneManager.LoadScene(GetSceneName(type));
+    }
+
+    string GetSceneName(Define.Scene type)
+    {
+        string name = System.Enum.GetName(typeof(Define.Scene), type);
+        return name;
+    }
+}
+```
