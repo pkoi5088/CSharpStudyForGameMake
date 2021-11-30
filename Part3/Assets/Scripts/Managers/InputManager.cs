@@ -17,7 +17,7 @@ public class InputManager
             return;
 
         if (Input.anyKey && KeyAction != null)
-            KeyAction.Invoke();
+				KeyAction.Invoke();
 
         if (MouseAction != null)
         {
@@ -33,5 +33,11 @@ public class InputManager
                 _pressed = false;
             }
         }
+    }
+
+    public void Clear()
+    {
+        KeyAction = null;
+        MouseAction = null;
     }
 }
